@@ -1,7 +1,6 @@
 #include "mg.hpp"
 
 namespace kokkos_hpcg {
-namespace {
 
 void restrict_injection(const SparseMatrix& fine, const SparseMatrix& coarse,
                         const Kokkos::View<double*>& fine_residual,
@@ -38,8 +37,6 @@ void prolongate_and_add(const SparseMatrix& fine, const SparseMatrix& coarse,
         fine_x(fine_row) += coarse_x(coarse_row);
       });
 }
-
-}  // namespace
 
 MultigridHierarchy build_hierarchy(const SparseMatrix& fine) {
   MultigridHierarchy hierarchy;

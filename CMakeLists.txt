@@ -32,11 +32,5 @@ target_link_libraries(kokkos-hpcg PRIVATE kokkos_hpcg_core)
 
 if(KOKKOS_HPCG_BUILD_TESTS)
   enable_testing()
-  add_executable(kokkos-hpcg-tests tests/test_kernels.cpp)
-  target_link_libraries(kokkos-hpcg-tests PRIVATE kokkos_hpcg_core)
-  add_test(NAME kokkos-hpcg-tests COMMAND kokkos-hpcg-tests)
-
-  add_executable(kokkos-hpcg-test-spmv tests/test_spmv.cpp)
-  target_link_libraries(kokkos-hpcg-test-spmv PRIVATE kokkos_hpcg_core)
-  add_test(NAME kokkos-hpcg-test-spmv COMMAND kokkos-hpcg-test-spmv)
+  add_subdirectory(tests)
 endif()
