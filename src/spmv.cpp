@@ -1,3 +1,4 @@
+#include "spmv.hpp"
 #include "common.hpp"
 
 #include <stdexcept>

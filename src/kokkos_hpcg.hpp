@@ -1,5 +1,7 @@
 #pragma once
 
+#include "spmv.hpp"
+
 #include <Kokkos_Core.hpp>
 
 #include <cstddef>
@@ -59,8 +61,6 @@ SparseMatrix generate_problem(int nx, int ny, int nz);
 Kokkos::View<double*> exact_solution(const SparseMatrix& A);
 Kokkos::View<double*> generate_rhs(const SparseMatrix& A);
 
-void spmv(const SparseMatrix& A, const Kokkos::View<double*>& x,
-          const Kokkos::View<double*>& y);
 void waxpby(double alpha, const Kokkos::View<double*>& x, double beta,
             const Kokkos::View<double*>& y, const Kokkos::View<double*>& w);
 double dot(const Kokkos::View<double*>& x, const Kokkos::View<double*>& y);

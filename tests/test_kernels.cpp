@@ -1,8 +1,8 @@
 #include "kokkos_hpcg.hpp"
+#include "test_common.hpp"
 
 #include <Kokkos_Core.hpp>
 
-#include <cmath>
 #include <iostream>
 #include <stdexcept>
 
@@ -10,15 +10,6 @@ namespace {
 
 void require(bool condition, const char* message) {
   if (!condition) {
-    throw std::runtime_error(message);
-  }
-}
-
-void require_near(double actual, double expected, double tolerance,
-                  const char* message) {
-  if (std::abs(actual - expected) > tolerance) {
-    std::cerr << message << ": actual=" << actual << " expected=" << expected
-              << '\n';
     throw std::runtime_error(message);
   }
 }
@@ -58,15 +49,6 @@ void test_vector_kernels() {
   }
 }
 
-void test_spmv_rhs() {
-  const auto A = kokkos_hpcg::generate_problem(2, 2, 2);
-  const auto b = kokkos_hpcg::generate_rhs(A);
-  auto bh = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), b);
-  for (int i = 0; i < A.nrows; ++i) {
-    require_near(bh(i), 19.0, 1.0e-12, "2x2x2 rhs entry");
-  }
-}
-
 void test_end_to_end() {
   kokkos_hpcg::Options options;
   options.nx = 4;
@@ -84,7 +66,6 @@ int main(int argc, char** argv) {
   try {
     test_matrix_generation();
     test_vector_kernels();
-    test_spmv_rhs();
     test_end_to_end();
     Kokkos::finalize();
     return 0;
