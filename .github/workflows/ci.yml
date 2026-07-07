@@ -1,125 +1,131 @@
 name: CI
 
 on:
-  push:
-  pull_request:
+    push:
+    pull_request:
 
 jobs:
-  tests:
-    runs-on: ubuntu-latest
-    env:
-      KOKKOS_VERSION: 5.1.1
-    steps:
-      - name: Check out
-        uses: actions/checkout@v4
+    tests:
+        runs-on: ubuntu-latest
+        env:
+            KOKKOS_VERSION: 5.1.1
+        steps:
+            - name: Check out
+              uses: actions/checkout@v4
 
-      - name: Install build tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential cmake ninja-build curl git
+            - name: Install build tools
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y build-essential cmake ninja-build curl git
 
-      - name: Build and install Kokkos
-        run: |
-          git clone \
-            --depth 1 \
-            --branch "${KOKKOS_VERSION}" \
-            https://github.com/kokkos/kokkos.git \
-            kokkos-src
-          cmake -S kokkos-src -B kokkos-build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_CXX_STANDARD=20 \
-            -DCMAKE_INSTALL_PREFIX="${GITHUB_WORKSPACE}/kokkos-install" \
-            -DKokkos_ENABLE_SERIAL=ON \
-            -DKokkos_ENABLE_TESTS=OFF
-          cmake --build kokkos-build
-          cmake --install kokkos-build
+            - name: Build and install Kokkos
+              run: |
+                  git clone \
+                    --depth 1 \
+                    --branch "${KOKKOS_VERSION}" \
+                    https://github.com/kokkos/kokkos.git \
+                    kokkos-src
+                  cmake -S kokkos-src -B kokkos-build -G Ninja \
+                    -DCMAKE_BUILD_TYPE=Release \
+                    -DCMAKE_CXX_STANDARD=20 \
+                    -DCMAKE_INSTALL_PREFIX="${GITHUB_WORKSPACE}/kokkos-install" \
+                    -DKokkos_ENABLE_SERIAL=ON \
+                    -DKokkos_ENABLE_TESTS=OFF
+                  cmake --build kokkos-build
+                  cmake --install kokkos-build
 
-      - name: Build kokkos-hpcg
-        run: |
-          cmake -S . -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DKokkos_ROOT="${GITHUB_WORKSPACE}/kokkos-install"
-          cmake --build build
-          ctest --test-dir build --output-on-failure
+            - name: Configure kokkos-hpcg
+              run: |
+                  cmake -S . -B build -G Ninja \
+                    -DCMAKE_BUILD_TYPE=Release \
+                    -DKokkos_ROOT="${GITHUB_WORKSPACE}/kokkos-install"
 
-  reference-compare:
-    runs-on: ubuntu-latest
-    needs: tests
-    env:
-      KOKKOS_VERSION: 5.1.1
-      HPCG_SHA256: 33a434e716b79e59e745f77ff72639c32623e7f928eeb7977655ffcaade0f4a4
-      HPCG_DIMS: "32 32 32"
-    steps:
-      - name: Check out
-        uses: actions/checkout@v4
+            - name: Build kokkos-hpcg
+              run: |
+                  cmake --build build
 
-      - name: Install build tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential cmake ninja-build curl git
+            - name: Test kokkos-hpcg
+              run: |
+                  ctest --test-dir build --output-on-failure
 
-      - name: Build and install Kokkos
-        run: |
-          git clone \
-            --depth 1 \
-            --branch "${KOKKOS_VERSION}" \
-            https://github.com/kokkos/kokkos.git \
-            kokkos-src
-          cmake -S kokkos-src -B kokkos-build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_CXX_STANDARD=20 \
-            -DCMAKE_INSTALL_PREFIX="${GITHUB_WORKSPACE}/kokkos-install" \
-            -DKokkos_ENABLE_SERIAL=ON \
-            -DKokkos_ENABLE_TESTS=OFF
-          cmake --build kokkos-build
-          cmake --install kokkos-build
+    reference-compare:
+        runs-on: ubuntu-latest
+        needs: tests
+        env:
+            KOKKOS_VERSION: 5.1.1
+            HPCG_SHA256: 33a434e716b79e59e745f77ff72639c32623e7f928eeb7977655ffcaade0f4a4
+            HPCG_DIMS: "32 32 32"
+        steps:
+            - name: Check out
+              uses: actions/checkout@v4
 
-      - name: Build kokkos-hpcg
-        run: |
-          cmake -S . -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DKokkos_ROOT="${GITHUB_WORKSPACE}/kokkos-install"
-          cmake --build build
+            - name: Install build tools
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y build-essential cmake ninja-build curl git
 
-      - name: Download and verify HPCG 3.1 reference
-        run: |
-          curl -L -o hpcg-3.1.tar.gz https://www.hpcg-benchmark.org/downloads/hpcg-3.1.tar.gz
-          echo "${HPCG_SHA256}  hpcg-3.1.tar.gz" | sha256sum -c -
-          tar xf hpcg-3.1.tar.gz
+            - name: Build and install Kokkos
+              run: |
+                  git clone \
+                    --depth 1 \
+                    --branch "${KOKKOS_VERSION}" \
+                    https://github.com/kokkos/kokkos.git \
+                    kokkos-src
+                  cmake -S kokkos-src -B kokkos-build -G Ninja \
+                    -DCMAKE_BUILD_TYPE=Release \
+                    -DCMAKE_CXX_STANDARD=20 \
+                    -DCMAKE_INSTALL_PREFIX="${GITHUB_WORKSPACE}/kokkos-install" \
+                    -DKokkos_ENABLE_SERIAL=ON \
+                    -DKokkos_ENABLE_TESTS=OFF
+                  cmake --build kokkos-build
+                  cmake --install kokkos-build
 
-      - name: Build HPCG 3.1 reference
-        run: |
-          cd hpcg-3.1
-          mkdir -p ref-build
-          cd ref-build
-          ../configure Linux_Serial
-          make -j2
+            - name: Build kokkos-hpcg
+              run: |
+                  cmake -S . -B build -G Ninja \
+                    -DCMAKE_BUILD_TYPE=Release \
+                    -DKokkos_ROOT="${GITHUB_WORKSPACE}/kokkos-install"
+                  cmake --build build
 
-      - name: Run kokkos-hpcg
-        run: |
-          ./build/kokkos-hpcg ${HPCG_DIMS} > kokkos.log
-          cat kokkos.log
+            - name: Download and verify HPCG 3.1 reference
+              run: |
+                  curl -L -o hpcg-3.1.tar.gz https://www.hpcg-benchmark.org/downloads/hpcg-3.1.tar.gz
+                  echo "${HPCG_SHA256}  hpcg-3.1.tar.gz" | sha256sum -c -
+                  tar xf hpcg-3.1.tar.gz
 
-      - name: Run HPCG 3.1 reference
-        run: |
-          cd hpcg-3.1/ref-build/bin
-          {
-            echo "HPCG benchmark input file"
-            echo "Sandia National Laboratories; University of Tennessee, Knoxville"
-            echo "${HPCG_DIMS}"
-            echo "1"
-          } > hpcg.dat
-          ./xhpcg > ../../../reference.stdout
-          cp HPCG-Benchmark_*.txt ../../../reference.log
-          cd ../../..
-          cat reference.log
+            - name: Build HPCG 3.1 reference
+              run: |
+                  cd hpcg-3.1
+                  mkdir -p ref-build
+                  cd ref-build
+                  ../configure Linux_Serial
+                  make -j2
 
-      - name: Compare outputs
-        run: |
-          bash scripts/compare_reference.sh \
-            --reference reference.log \
-            --candidate kokkos.log \
-            --rtol 1.0e-5 \
-            --atol 1.0e-10 \
-            --scaled-rtol 1.0e-2 \
-            --scaled-atol 1.0e-10
+            - name: Run kokkos-hpcg
+              run: |
+                  ./build/kokkos-hpcg ${HPCG_DIMS} > kokkos.log
+                  cat kokkos.log
+
+            - name: Run HPCG 3.1 reference
+              run: |
+                  cd hpcg-3.1/ref-build/bin
+                  {
+                    echo "HPCG benchmark input file"
+                    echo "Sandia National Laboratories; University of Tennessee, Knoxville"
+                    echo "${HPCG_DIMS}"
+                    echo "1"
+                  } > hpcg.dat
+                  ./xhpcg > ../../../reference.stdout
+                  cp HPCG-Benchmark_*.txt ../../../reference.log
+                  cd ../../..
+                  cat reference.log
+
+            - name: Compare outputs
+              run: |
+                  bash scripts/compare_reference.sh \
+                    --reference reference.log \
+                    --candidate kokkos.log \
+                    --rtol 1.0e-5 \
+                    --atol 1.0e-10 \
+                    --scaled-rtol 1.0e-2 \
+                    --scaled-atol 1.0e-10
